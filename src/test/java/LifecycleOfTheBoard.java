@@ -1,5 +1,5 @@
 
-import org.example.RespDataCreateGetBoard;
+import org.example.RespDataCreateBoard;
 import org.example.RespDataGetBoard;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ public class LifecycleOfTheBoard {
                 .queryParam("token", token)
                 .when()
                 .post(endpointCreateBoard)
-                .then().extract().body().as(RespDataCreateGetBoard.class);
+                .then().extract().body().as(RespDataCreateBoard.class);
         // .log().all();
         idBoard = responce.id;
         System.out.println(idBoard);
