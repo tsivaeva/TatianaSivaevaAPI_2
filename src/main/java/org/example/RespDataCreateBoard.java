@@ -13,6 +13,4 @@ public class RespDataCreateBoard implements Serializable {
     public boolean pinned;
     public String url;
     public String shortUrl;
-
-
 }
