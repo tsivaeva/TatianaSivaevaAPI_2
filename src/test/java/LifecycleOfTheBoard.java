@@ -1,19 +1,24 @@
 
+import org.junit.jupiter.api.*;
 import org.example.RespDataCreateBoard;
 import org.example.RespDataDeleteBoard;
 import org.example.RespDataGetBoard;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class LifecycleOfTheBoard {
 
-    private static String name = "TestFromIdea";
-    private static String idBoard;// = "63cd87f5fbf45f036074b8f5";
+    private static String name = "TestFromIdea2301";
+    private static String idBoard;
+    private static String idName;
     private static String url = "https://api.trello.com/1/boards/";
     private String urlGetBoard = url + idBoard + "/memberships";
     private String urlUpdateDeleteBoard = url + idBoard;
+
+    private static final String  updateName = "TestFrom UpdateName";
+    private static final String requestUpdateBody = "{\n" +
+            "  \"name\": \"" + updateName + "\"\n}";
 
     @BeforeAll
     public static void setup() {
@@ -21,13 +26,15 @@ public class LifecycleOfTheBoard {
     }
 
     @Test
+    @Order(1)
+
     public void CreateBoard() {
 
         Specification.installSpetification(Specification.requestSpec(url), Specification.responseSpec200());
 
         String token = "ATTAdc25aa5bf5b283df35d9f926c9f4fbe959349d004d718c67c296fdb99abe353d8E81F928";
         String api_key = "702228c97231235e3680ac588adde576";
-        System.out.println(name);
+
         var responce = given()
                 .queryParam("name", name)
                 .queryParam("key", api_key)
@@ -35,15 +42,21 @@ public class LifecycleOfTheBoard {
                 .when()
                 .post(url)
                 .then().extract().body().as(RespDataCreateBoard.class);
+
         idBoard = responce.id;
-        System.out.println(idBoard);
+        idName = responce.name;
+        Assertions.assertNotNull(idBoard);
+        Assertions.assertNotNull(idName);
+
+        System.out.println("\nCreateBoard idBoard " + idBoard);
+        System.out.println("CreateBoard name " + idName);
     }
 
     @Test
+    @Order(2)
     public void GetBoard() {
+        System.out.println("GetBoard idBoard from url Before run" + idBoard);
         Specification.installSpetification(Specification.requestSpec(urlGetBoard), Specification.responseSpec200());
-
-        System.out.println("before" + idBoard);
 
         String token = "ATTAdc25aa5bf5b283df35d9f926c9f4fbe959349d004d718c67c296fdb99abe353d8E81F928";
         String api_key = "702228c97231235e3680ac588adde576";
@@ -53,13 +66,18 @@ public class LifecycleOfTheBoard {
                 .queryParam("token", token)
                 .when()
                 .get(urlGetBoard)
-                .then().extract().body().as(RespDataGetBoard.class);
+                .then().extract().jsonPath().getList("", RespDataGetBoard.class);
+        Assertions.assertEquals("", "");
+
+        Assertions.assertNotNull(responce.get(0).id);
+        Assertions.assertNotNull(responce.get(0).idMember);
+
+        System.out.println("\nGetBoard id " + responce.get(0).id);
+        System.out.println("GetBoard idMember " + responce.get(0).idMember);
     }
 
-    private static String requestUpdateBody = "{\n" +
-            "  \"name\": \"TestFrom UpdateName\"\n}";
-
     @Test
+    @Order(3)
     public void UpdateBoard() {
 
         Specification.installSpetification(Specification.requestSpec(urlUpdateDeleteBoard), Specification.responseSpec200());
@@ -74,11 +92,16 @@ public class LifecycleOfTheBoard {
                 .when()
                 .put(urlUpdateDeleteBoard)
                 .then().extract().body().as(RespDataCreateBoard.class);
-        idBoard = responce.id;
-        System.out.println(idBoard);
+
+        System.out.println("\nUpdateBoard idBoard " + responce.id);
+        System.out.println("UpdateBoard name " + responce.name);
+
+        Assertions.assertEquals(responce.id,idBoard);
+        Assertions.assertEquals(responce.name,updateName);
     }
 
     @Test
+    @Order(4)
     public void DeleteBoard() {
 
         Specification.installSpetification(Specification.requestSpec(urlUpdateDeleteBoard), Specification.responseSpec200());
@@ -92,5 +115,8 @@ public class LifecycleOfTheBoard {
                 .when()
                 .delete(urlUpdateDeleteBoard)
                 .then().extract().body().as(RespDataDeleteBoard.class);
+
+        Assertions.assertNull(responce._value);
+        System.out.println("\nDeleteBoard " + responce._value);
     }
 }
